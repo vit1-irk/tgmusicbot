@@ -8,3 +8,4 @@ services:
         - MUSIC_CHATS
     tty: true
     stdin_open: true
+

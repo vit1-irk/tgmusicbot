@@ -7,3 +7,4 @@ RUN python -m pip install -r requirements.txt
 RUN rm -rf /root/.cache/pip
 
 ENTRYPOINT [ "python", "tgmusicbot.py" ]
+
