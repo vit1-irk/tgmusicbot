@@ -47,7 +47,7 @@ from datetime import timedelta
 from urllib.parse import urlparse
 from pyrogram import Client, filters, idle
 from pyrogram.types import Message
-from pyrogram.enums import ParseMode, ChatAction
+from pyrogram.enums import ParseMode, ChatAction, ChatType
 from youtube_dl import YoutubeDL
 from PIL import Image
 import ffmpeg
@@ -144,12 +144,13 @@ async def _fetch_and_send_music(message: Message):
         task = asyncio.create_task(_upload_audio(message, info_dict,
                                                  audio_file))
         await message.reply_chat_action(ChatAction.UPLOAD_DOCUMENT)
+        #await task
         await d_status.delete()
         while not task.done():
             await asyncio.sleep(4)
             await message.reply_chat_action(ChatAction.UPLOAD_DOCUMENT)
         await message.reply_chat_action(ChatAction.CANCEL)
-        if message.chat.type == "private":
+        if message.chat.type == ChatType.PRIVATE:
             await message.delete()
     except Exception as e:
         await message.reply_text(repr(e))
@@ -188,16 +189,20 @@ async def _upload_audio(message: Message, info_dict, audio_file):
     caption = f"<b><a href=\"{webpage_url}\">{title}</a></b>"
     duration = int(float(info_dict['duration']))
     performer = info_dict['uploader']
-    await message.reply_audio(audio_file,
-                              caption=caption,
-                              duration=duration,
-                              performer=performer,
-                              title=title,
-                              parse_mode=ParseMode.HTML,
-                              thumb=squarethumb_file)
-    for f in (audio_file, thumbnail_file, squarethumb_file):
-        os.remove(f)
-
+    print("replying with audio")
+    try:
+        await message.reply_audio(audio_file,
+                                  caption=caption,
+                                  duration=duration,
+                                  performer=performer,
+                                  title=title,
+                                  parse_mode=ParseMode.HTML,
+                                  thumb=squarethumb_file)
+    except Exception as e:
+        raise
+    finally:
+        for f in (audio_file, thumbnail_file, squarethumb_file):
+            os.remove(f)
 
 def _get_file_extension_from_url(url):
     url_path = urlparse(url).path
